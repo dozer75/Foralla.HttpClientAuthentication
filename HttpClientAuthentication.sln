@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32414.318
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C0EFE85F-B0F4-4128-B3D3-6B3217D72222}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{F639DFB5-97E6-4C9C-9D05-9B64C523A6F8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B5909E33-8FE5-4046-A836-8BCFE7E66C12}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		CONTRIBUTING.md = CONTRIBUTING.md
+		LICENSE.txt = LICENSE.txt
+		NuGet.config = NuGet.config
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpClientAuthentication", "src\HttpClientAuthentication\HttpClientAuthentication.csproj", "{FFE22A45-B406-49C6-ABFF-753FEE4B2B75}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpClientAuthentication.Test", "test\HttpClientAuthentication.Test\HttpClientAuthentication.Test.csproj", "{E0B11DEC-E9D5-42E3-BDF9-99240D688C15}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{A47EB8DC-19AA-4E6A-BDCA-EAF572F1190F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\master-pr.yml = .github\workflows\master-pr.yml
+		.github\workflows\master-publish.yml = .github\workflows\master-publish.yml
+		.github\workflows\master-push.yml = .github\workflows\master-push.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FFE22A45-B406-49C6-ABFF-753FEE4B2B75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFE22A45-B406-49C6-ABFF-753FEE4B2B75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFE22A45-B406-49C6-ABFF-753FEE4B2B75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFE22A45-B406-49C6-ABFF-753FEE4B2B75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0B11DEC-E9D5-42E3-BDF9-99240D688C15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0B11DEC-E9D5-42E3-BDF9-99240D688C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0B11DEC-E9D5-42E3-BDF9-99240D688C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0B11DEC-E9D5-42E3-BDF9-99240D688C15}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FFE22A45-B406-49C6-ABFF-753FEE4B2B75} = {C0EFE85F-B0F4-4128-B3D3-6B3217D72222}
+		{E0B11DEC-E9D5-42E3-BDF9-99240D688C15} = {F639DFB5-97E6-4C9C-9D05-9B64C523A6F8}
+		{A47EB8DC-19AA-4E6A-BDCA-EAF572F1190F} = {B5909E33-8FE5-4046-A836-8BCFE7E66C12}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {813A47F6-2F33-4FF0-8493-60B9CCD4EB84}
+	EndGlobalSection
+EndGlobal

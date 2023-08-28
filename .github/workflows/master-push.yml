@@ -1,0 +1,56 @@
+name: Push - master
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore: 
+      - '.github/**'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE.txt'
+      - 'NuGet.config'
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Setup .NET 7.0.x
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+    - name: Restore solution
+      run: dotnet restore
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore -p:ContinuousIntegrationBuild=true
+    - name: Test solution
+      run: dotnet test --configuration Release --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura -p:UseSourceLink=true -p:CoverletOutput=../../coverage/
+    - name: Create code coverage summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: ./coverage/*.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: both
+        thresholds: '90 95'
+    - name: Create code coverage HTML report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.24
+      with:
+        reports: ./coverage/*.xml
+        targetdir: report
+        reporttypes: HtmlInline
+    - name: Upload code coverage HTML report as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: CodeCoverageReport
+        path: report
+    - name: Add code coverage summary to job summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
