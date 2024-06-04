@@ -25,6 +25,11 @@ namespace KISS.HttpClientAuthentication.Configuration
         public string? AuthorizationScheme { get; set; }
 
         /// <summary>
+        ///     Gets or sets if the access token should be cached or not.
+        /// </summary>
+        public bool DisableTokenCache { get; set; }
+
+        /// <summary>
         ///     Gets or sets the type of grant flow to be used.
         /// </summary>
         public OAuth2GrantType GrantType { get; set; }

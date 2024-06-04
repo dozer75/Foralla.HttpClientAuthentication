@@ -247,6 +247,51 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
         }
 
         [Fact]
+        public async Task TestNoCachingOfAccessTokenResponseWhenCacheIsDiabled()
+        {
+            IServiceProvider services = BuildServices();
+
+            AccessTokenResponse expected = new()
+            {
+                AccessToken = "ACCESS_TOKEN",
+                TokenType = "TOKEN_TYPE",
+                ExpiresIn = null
+            };
+
+            Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
+
+            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                          {
+                              Content = JsonContent.Create(expected)
+                          });
+
+            OAuth2Configuration configuration = new()
+            {
+                GrantType = OAuth2GrantType.ClientCredentials,
+                AuthorizationEndpoint = new("https://somehost/"),
+                ClientCredentials = new()
+                {
+                    ClientId = "client_id",
+                    ClientSecret = "client_secret"
+                },
+                DisableTokenCache = true
+            };
+
+            OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
+
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+
+            Mock<IMemoryCache> memoryCacheMock = services.GetRequiredService<Mock<IMemoryCache>>();
+            memoryCacheMock.Verify(memoryCache => memoryCache.CreateEntry("ClientCredentials#https://somehost/#client_id"), Times.Never);
+
+            Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
+
+            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
+                                                       "https://somehost/", "client_id"), Times.Once);
+        }
+
+        [Fact]
         public async Task TestUseFormBasedAuthentication()
         {
             IServiceProvider services = BuildServices();

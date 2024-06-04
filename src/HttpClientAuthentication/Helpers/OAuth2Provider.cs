@@ -79,7 +79,12 @@ namespace KISS.HttpClientAuthentication.Helpers
                 return null;
             }
 
-            if (token.ExpiresIn > 0)
+            if (configuration.DisableTokenCache)
+            {
+                _logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
+                                       configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+            }
+            else if (token.ExpiresIn > 0)
             {
                 double cacheExpiresIn = (int)token.ExpiresIn * 0.95;
                 _memoryCache.Set(cacheKey, token, TimeSpan.FromSeconds(cacheExpiresIn));
