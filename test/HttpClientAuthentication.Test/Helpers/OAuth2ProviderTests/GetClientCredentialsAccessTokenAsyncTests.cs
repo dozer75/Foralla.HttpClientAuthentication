@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net;
@@ -27,8 +27,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Func<Task> act = () => provider.GetClientCredentialsAccessTokenAsync(new(), default!).AsTask();
 
-            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("GrantType must be ClientCredentials.*")
-                     .ConfigureAwait(false);
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("GrantType must be ClientCredentials.*");
         }
 
         [Fact]
@@ -39,15 +38,14 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             Func<Task> act = () => provider.GetClientCredentialsAccessTokenAsync(new() { GrantType = OAuth2GrantType.ClientCredentials }, default!)
                                            .AsTask();
 
-            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("No valid ClientCredentials found.*")
-                     .ConfigureAwait(false);
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("No valid ClientCredentials found.*");
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n  ")]
-        public async Task TestClientIdIsNullEmptyOrWhitespacesThrowsArgumentException(string clientId)
+        public async Task TestClientIdIsNullEmptyOrWhitespacesThrowsArgumentException(string? clientId)
         {
             IServiceProvider services = BuildServices();
 
@@ -59,7 +57,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                 AuthorizationEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
-                    ClientId = clientId,
+                    ClientId = clientId!,
                     ClientSecret = "client_secret"
                 }
             };
@@ -69,15 +67,14 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             await act.Should().ThrowAsync<ArgumentException>()
                               .WithParameterName("configuration")
-                              .WithMessage("ClientCredentials.ClientId must be specified.*")
-                     .ConfigureAwait(false);
+                              .WithMessage("ClientCredentials.ClientId must be specified.*");
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n  ")]
-        public async Task TestClientSecretIsNullEmptyOrWhitespacesThrowsArgumentException(string clientSecret)
+        public async Task TestClientSecretIsNullEmptyOrWhitespacesThrowsArgumentException(string? clientSecret)
         {
             IServiceProvider services = BuildServices();
 
@@ -90,7 +87,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
-                    ClientSecret = clientSecret
+                    ClientSecret = clientSecret!
                 }
             };
 
@@ -99,8 +96,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             await act.Should().ThrowAsync<ArgumentException>()
                               .WithParameterName("configuration")
-                              .WithMessage("ClientCredentials.ClientSecret must be specified.*")
-                     .ConfigureAwait(false);
+                              .WithMessage("ClientCredentials.ClientSecret must be specified.*");
         }
 
         [Fact]
@@ -132,7 +128,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                 }
             };
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().NotBeNull();
             result!.AccessToken.Should().Be("Access_Token");
@@ -179,7 +175,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().NotBeNull();
 
@@ -235,7 +231,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             Mock<IMemoryCache> memoryCacheMock = services.GetRequiredService<Mock<IMemoryCache>>();
             memoryCacheMock.Verify(memoryCache => memoryCache.CreateEntry("ClientCredentials#https://somehost/#client_id"), Times.Never);
@@ -280,7 +276,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             Mock<IMemoryCache> memoryCacheMock = services.GetRequiredService<Mock<IMemoryCache>>();
             memoryCacheMock.Verify(memoryCache => memoryCache.CreateEntry("ClientCredentials#https://somehost/#client_id"), Times.Never);
@@ -304,7 +300,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                               request.Should().NotBeNull("Missing SendAsync request.");
                               request.Headers.Authorization.Should().BeNull();
 
-                              string content = await request.Content!.ReadAsStringAsync(default).ConfigureAwait(false);
+                              string content = await request.Content!.ReadAsStringAsync(default);
                               content.Should().Be($"grant_type=client_credentials&client_id=client_id&client_secret=client_secret{Environment.NewLine}");
                           })
                           .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
@@ -322,7 +318,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
         }
 
         [Fact]
@@ -346,7 +342,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                                   actualRequest.Headers.Authorization!.Parameter.Should().Be(Convert.ToBase64String(Encoding.ASCII.GetBytes($"client_id:client_secret")));
                               }
 
-                              string content = await request.Content!.ReadAsStringAsync(default).ConfigureAwait(false);
+                              string content = await request.Content!.ReadAsStringAsync(default);
                               content.Should().Be($"grant_type=client_credentials{Environment.NewLine}");
                           })
                           .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
@@ -365,7 +361,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
         }
 
         [Fact]
@@ -381,7 +377,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                               request.Should().NotBeNull("Missing SendAsync request.");
                               request.Headers.Authorization.Should().BeNull();
 
-                              string content = await request.Content!.ReadAsStringAsync(default).ConfigureAwait(false);
+                              string content = await request.Content!.ReadAsStringAsync(default);
                               content.Should().Be($"*scope=test_scope*");
                           })
                           .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
@@ -400,7 +396,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
         }
 
         [Theory]
@@ -408,7 +404,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
         [InlineData("")]
         [InlineData(" ")]
         [InlineData(" \t\r\n")]
-        public async Task TestRequestHasNoScopeWhenNullEmptyOrWhitespace(string scope)
+        public async Task TestRequestHasNoScopeWhenNullEmptyOrWhitespace(string? scope)
         {
             IServiceProvider services = BuildServices();
 
@@ -420,7 +416,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                               request.Should().NotBeNull("Missing SendAsync request.");
                               request.Headers.Authorization.Should().BeNull();
 
-                              string content = await request.Content!.ReadAsStringAsync(default).ConfigureAwait(false);
+                              string content = await request.Content!.ReadAsStringAsync(default);
                               content.Should().NotBe($"*scope=*");
                           })
                           .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
@@ -439,7 +435,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
         }
     }
 }

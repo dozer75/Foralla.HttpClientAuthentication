@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using FluentAssertions;
@@ -41,7 +41,7 @@ namespace KISS.HttpClientAuthentication.Test
         [Fact]
         public void TestGetAuthenticationHandlerThrowsInvalidOperationExceptionWhenConfigSectionIsMissing()
         {
-            IServiceProvider services = BuildServices(new Dictionary<string, string?>());
+            IServiceProvider services = BuildServices([]);
 
             IHttpClientFactory factory = services.GetRequiredService<IHttpClientFactory>();
 
@@ -182,7 +182,7 @@ namespace KISS.HttpClientAuthentication.Test
             handlerMock.Object.InnerHandler.Should().BeAssignableTo<OAuth2AuthenticationHandler>();
         }
 
-        private static IServiceProvider BuildServices(IEnumerable<KeyValuePair<string, string?>> configuration)
+        private static ServiceProvider BuildServices(IEnumerable<KeyValuePair<string, string?>> configuration)
         {
             ServiceCollection services = new();
 

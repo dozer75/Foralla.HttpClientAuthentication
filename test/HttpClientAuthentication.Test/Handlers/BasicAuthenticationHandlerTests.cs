@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Text;
@@ -16,7 +16,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n ")]
-        public async Task TestSendAsyncThrowsExceptionWhenUsernameIsNotSpecified(string username)
+        public async Task TestSendAsyncThrowsExceptionWhenUsernameIsNotSpecified(string? username)
         {
             IServiceProvider services = BuildServices("Test", new Dictionary<string, string?>
             {
@@ -29,8 +29,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
             Func<Task> act = () => httpClient.GetAsync("https://somehost");
 
             await act.Should().ThrowAsync<InvalidOperationException>()
-                              .WithMessage("HTTP client configured to use basic authentication but Username is missing in configuration.")
-                              .ConfigureAwait(false);
+                              .WithMessage("HTTP client configured to use basic authentication but Username is missing in configuration.");
 
         }
 
@@ -38,7 +37,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n ")]
-        public async Task TestSendAsyncThrowsExceptionWhenPasswordIsNotSpecified(string password)
+        public async Task TestSendAsyncThrowsExceptionWhenPasswordIsNotSpecified(string? password)
         {
             IServiceProvider services = BuildServices("Test", new Dictionary<string, string?>
             {
@@ -52,8 +51,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
             Func<Task> act = () => httpClient.GetAsync("https://somehost");
 
             await act.Should().ThrowAsync<InvalidOperationException>()
-                              .WithMessage("HTTP client configured to use basic authentication but Password is missing in configuration.")
-                              .ConfigureAwait(false);
+                              .WithMessage("HTTP client configured to use basic authentication but Password is missing in configuration.");
 
         }
 
@@ -70,7 +68,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
 
             HttpClient httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient("Test");
 
-            await httpClient.GetAsync("https://somehost").ConfigureAwait(false);
+            await httpClient.GetAsync("https://somehost");
 
             Mock<HttpMessageHandler> hmhMock = services.GetRequiredService<Mock<HttpMessageHandler>>();
 

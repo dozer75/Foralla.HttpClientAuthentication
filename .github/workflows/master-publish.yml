@@ -16,10 +16,10 @@ jobs:
         echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
     - name: Checkout source
       uses: actions/checkout@v3
-    - name: Setup .NET 7.0.x
+    - name: Setup .NET 8.0.x
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '8.0.x'
     - name: Restore solution
       run: dotnet restore
     - name: Build solution (pre-release)
