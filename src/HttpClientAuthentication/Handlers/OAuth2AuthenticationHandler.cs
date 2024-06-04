@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net.Http.Headers;
@@ -8,20 +8,13 @@ using KISS.HttpClientAuthentication.Helpers;
 
 namespace KISS.HttpClientAuthentication.Handlers
 {
-    internal sealed class OAuth2AuthenticationHandler : BaseAuthenticationHandler<OAuth2Configuration>
+    internal sealed class OAuth2AuthenticationHandler(IOAuth2Provider provider) : BaseAuthenticationHandler<OAuth2Configuration>
     {
-        private readonly IOAuth2Provider _provider;
-
-        public OAuth2AuthenticationHandler(IOAuth2Provider provider)
-        {
-            _provider = provider;
-        }
-
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             AccessTokenResponse? token = Configuration.GrantType switch
             {
-                OAuth2GrantType.ClientCredentials => await _provider.GetClientCredentialsAccessTokenAsync(Configuration, cancellationToken).ConfigureAwait(false),
+                OAuth2GrantType.ClientCredentials => await provider.GetClientCredentialsAccessTokenAsync(Configuration, cancellationToken).ConfigureAwait(false),
                 OAuth2GrantType.None => throw new InvalidOperationException($"{nameof(Configuration.GrantType)} must be specified."),
                 _ => throw new InvalidOperationException($"The {nameof(Configuration.GrantType)} {Configuration.GrantType} is not supported."),
             };

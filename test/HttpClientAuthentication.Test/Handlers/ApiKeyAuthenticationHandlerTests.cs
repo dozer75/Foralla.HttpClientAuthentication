@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using FluentAssertions;
@@ -15,7 +15,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n ")]
-        public async Task TestSendAsyncThrowsExceptionWhenApiKeyHeaderIsNotSpecified(string header)
+        public async Task TestSendAsyncThrowsExceptionWhenApiKeyHeaderIsNotSpecified(string? header)
         {
             IServiceProvider services = BuildServices("Test", new Dictionary<string, string?>
                                                               {
@@ -28,15 +28,14 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
             Func<Task> act = () => httpClient.GetAsync("https://somehost");
 
             await act.Should().ThrowAsync<InvalidOperationException>()
-                              .WithMessage("HTTP client configured to use ApiKey, but Header is not set in the ApiKey configuration.")
-                              .ConfigureAwait(false);
+                              .WithMessage("HTTP client configured to use ApiKey, but Header is not set in the ApiKey configuration.");
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" \t\r\n ")]
-        public async Task TestSendAsyncThrowsExceptionWhenApiKeyValueIsNotSpecified(string value)
+        public async Task TestSendAsyncThrowsExceptionWhenApiKeyValueIsNotSpecified(string? value)
         {
             IServiceProvider services = BuildServices("Test", new Dictionary<string, string?>
                                                               {
@@ -50,8 +49,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
             Func<Task> act = () => httpClient.GetAsync("https://somehost");
 
             await act.Should().ThrowAsync<InvalidOperationException>()
-                              .WithMessage("HTTP client configured to use ApiKey, but Value is not set in the ApiKey configuration.")
-                              .ConfigureAwait(false);
+                              .WithMessage("HTTP client configured to use ApiKey, but Value is not set in the ApiKey configuration.");
         }
 
         [Fact]
@@ -67,7 +65,7 @@ namespace KISS.HttpClientAuthentication.Test.Handlers
 
             HttpClient httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient("Test");
 
-            await httpClient.GetAsync("https://somehost").ConfigureAwait(false);
+            await httpClient.GetAsync("https://somehost");
 
             Mock<HttpMessageHandler> hmhMock = services.GetRequiredService<Mock<HttpMessageHandler>>();
 

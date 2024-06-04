@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using KISS.HttpClientAuthentication.Configuration;
@@ -50,6 +50,10 @@ namespace KISS.HttpClientAuthentication
         /// </exception>
         public static IHttpClientBuilder AddAuthenticatedHttpMessageHandler(this IHttpClientBuilder builder, string configSection)
         {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configSection);
+#else
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
@@ -59,6 +63,7 @@ namespace KISS.HttpClientAuthentication
             {
                 throw new ArgumentNullException(nameof(configSection));
             }
+#endif
 
             builder.Services.AddMemoryCache();
 

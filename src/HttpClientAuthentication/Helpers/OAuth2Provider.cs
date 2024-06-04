@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net;
@@ -15,18 +15,10 @@ namespace KISS.HttpClientAuthentication.Helpers
     /// <summary>
     ///     Implementation of <see cref="IOAuth2Provider"/>.
     /// </summary>
-    internal sealed class OAuth2Provider : IOAuth2Provider
+    internal sealed class OAuth2Provider(IHttpClientFactory clientFactory, ILogger<OAuth2Provider> logger, IMemoryCache memoryCache)
+        : IOAuth2Provider
     {
-        private readonly HttpClient _client;
-        private readonly ILogger<OAuth2Provider> _logger;
-        private readonly IMemoryCache _memoryCache;
-
-        public OAuth2Provider(IHttpClientFactory clientFactory, ILogger<OAuth2Provider> logger, IMemoryCache memoryCache)
-        {
-            _client = clientFactory.CreateClient(nameof(HttpClientAuthentication));
-            _logger = logger;
-            _memoryCache = memoryCache;
-        }
+        private readonly HttpClient _client = clientFactory.CreateClient(nameof(HttpClientAuthentication));
 
         /// <inheritdoc />
         public async ValueTask<AccessTokenResponse?> GetClientCredentialsAccessTokenAsync(OAuth2Configuration configuration, CancellationToken cancellationToken = default)
@@ -56,15 +48,15 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             string cacheKey = $"{configuration.GrantType}#{configuration.AuthorizationEndpoint}#{configuration.ClientCredentials!.ClientId}";
 
-            if (_memoryCache.TryGetValue(cacheKey, out AccessTokenResponse? token))
+            if (memoryCache.TryGetValue(cacheKey, out AccessTokenResponse? token))
             {
-                _logger.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
-                                       configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
+                logger.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
+                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
                 return token;
             }
 
-            _logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
-                             configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
+            logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
+                            configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
 
             using FormUrlEncodedContent requestContent = GetClientCredentialsContent(configuration.ClientCredentials!, configuration.Scope);
 
@@ -79,18 +71,23 @@ namespace KISS.HttpClientAuthentication.Helpers
                 return null;
             }
 
-            if (token.ExpiresIn > 0)
+            if (configuration.DisableTokenCache)
+            {
+                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
+                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+            }
+            else if (token.ExpiresIn > 0)
             {
                 double cacheExpiresIn = (int)token.ExpiresIn * 0.95;
-                _memoryCache.Set(cacheKey, token, TimeSpan.FromSeconds(cacheExpiresIn));
+                memoryCache.Set(cacheKey, token, TimeSpan.FromSeconds(cacheExpiresIn));
 
-                _logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
-                                       configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
+                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
+                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
             }
             else
             {
-                _logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
-                                       configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
+                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
             }
 
             return token;
@@ -131,8 +128,8 @@ namespace KISS.HttpClientAuthentication.Helpers
                 if (result.StatusCode != HttpStatusCode.BadRequest ||
                     !TryParseAndLogOAuth2Error(body, configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId))
                 {
-                    _logger.LogError("Could not authenticate against {AuthorizationEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
-                                     configuration.AuthorizationEndpoint, result.StatusCode, body);
+                    logger.LogError("Could not authenticate against {AuthorizationEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
+                                    configuration.AuthorizationEndpoint, result.StatusCode, body);
                 }
 
                 return null;
@@ -142,7 +139,7 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             if (token?.AccessToken is null)
             {
-                _logger.LogError("The result from {AuthorizationEndpoint} is not a valid OAuth2 result.", configuration.AuthorizationEndpoint);
+                logger.LogError("The result from {AuthorizationEndpoint} is not a valid OAuth2 result.", configuration.AuthorizationEndpoint);
 
                 return null;
             }
@@ -222,7 +219,7 @@ namespace KISS.HttpClientAuthentication.Helpers
             logMessage.Append('.');
 
 #pragma warning disable CA2254 // Template should be a static expression
-            _logger.LogError(logMessage.ToString());
+            logger.LogError(logMessage.ToString());
 #pragma warning restore CA2254 // Template should be a static expression
 
             return true;

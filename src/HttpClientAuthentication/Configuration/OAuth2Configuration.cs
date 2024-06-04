@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using KISS.HttpClientAuthentication.Constants;
@@ -23,6 +23,11 @@ namespace KISS.HttpClientAuthentication.Configuration
         ///     If this is unset, it will be implied by the <see cref="AuthenticationProvider"/> if needed.
         /// </summary>
         public string? AuthorizationScheme { get; set; }
+
+        /// <summary>
+        ///     Gets or sets if the access token should be cached or not.
+        /// </summary>
+        public bool DisableTokenCache { get; set; }
 
         /// <summary>
         ///     Gets or sets the type of grant flow to be used.

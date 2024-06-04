@@ -156,7 +156,7 @@ dotnet_diagnostic.ca1819.severity = none
 dotnet_diagnostic.CA1848.severity = silent
 
 # CA2007: Consider calling ConfigureAwait on the awaited task
-dotnet_diagnostic.CA2007.severity  =  suggestion
+dotnet_diagnostic.CA2007.severity  =  none
 
 # IDE0058: Expression value is never used
 dotnet_diagnostic.IDE0058.severity = none

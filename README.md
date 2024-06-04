@@ -75,13 +75,14 @@ Authentication using OAuth2.
 
 ##### Client credentials
 
-Using OAuth2 client credentials, all settings except `Scope` is required.
+Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Scope` is required.
 
 ```
 "<section name>": {
   "AuthenticationProvider": "OAuth2",
   "OAuth2": {
     "AuthorizationEndpoint": "<OAuth2 token endpoint>",
+    "DisableTokenCache": false,
     "GrantType": "ClientCredentials",
     "Scope": "<Optional scopes separated by space>",
     "ClientCredentials": {

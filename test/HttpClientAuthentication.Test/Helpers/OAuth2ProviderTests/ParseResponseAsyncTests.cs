@@ -1,4 +1,4 @@
-// Copyright © 2023 Rune Gulbrandsen.
+// Copyright © 2024 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net;
@@ -49,7 +49,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                 }
             };
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().BeEquivalentTo(expected, options =>
                 options.Using<AccessTokenResponse>(ctx => ctx.Subject.Should().Match<AccessTokenResponse>(f => f.TokenType == "Bearer"))
@@ -90,7 +90,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
                 }
             };
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().BeEquivalentTo(expected, options =>
                 options.Using<AccessTokenResponse>(ctx => ctx.Subject.Should().Match<AccessTokenResponse>(f => f.TokenType == "Authorization_Scheme"))
@@ -120,7 +120,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().BeNull();
 
@@ -156,7 +156,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
 
-            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default).ConfigureAwait(false);
+            AccessTokenResponse? result = await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
 
             result.Should().BeNull();
 
