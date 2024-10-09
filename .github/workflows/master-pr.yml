@@ -45,13 +45,13 @@ jobs:
         output: both
         thresholds: '90 95'
     - name: Create code coverage HTML report
-      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.24
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.3.9
       with:
         reports: ./coverage/*.xml
         targetdir: report
         reporttypes: HtmlInline
     - name: Upload code coverage HTML report as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: CodeCoverageReport
         path: report
