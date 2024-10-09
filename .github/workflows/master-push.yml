@@ -48,7 +48,7 @@ jobs:
         targetdir: report
         reporttypes: HtmlInline
     - name: Upload code coverage HTML report as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: CodeCoverageReport
         path: report
