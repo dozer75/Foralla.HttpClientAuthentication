@@ -6,4 +6,5 @@ using System.Runtime.CompilerServices;
 [assembly: CLSCompliant(false)]
 
 [assembly: InternalsVisibleTo("KISS.HttpClientAuthentication.Test")]
+
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
