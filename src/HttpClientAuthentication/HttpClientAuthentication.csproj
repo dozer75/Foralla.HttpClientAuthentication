@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 
     <!-- Ensure bump this when working on new version-->
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>2.0.1</VersionPrefix>
     <Authors>Rune Gulbrandsen</Authors>
     <Copyright>Copyright (c) 2024 Rune Gulbrandsen. All rights reserved.</Copyright>
     <Summary>
