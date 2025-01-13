@@ -46,23 +46,23 @@ namespace KISS.HttpClientAuthentication.Helpers
             }
 
 
-            string cacheKey = $"{configuration.GrantType}#{configuration.AuthorizationEndpoint}#{configuration.ClientCredentials!.ClientId}";
+            string cacheKey = $"{configuration.GrantType}#{configuration.TokenEndpoint}#{configuration.ClientCredentials!.ClientId}";
 
             if (memoryCache.TryGetValue(cacheKey, out AccessTokenResponse? token))
             {
-                logger.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
+                logger.LogInformation("Token for {TokenEndpoint} with client id {ClientId} found in cache, using this.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials.ClientId);
                 return token;
             }
 
-            logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
-                            configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
+            logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {TokenEndpoint} with client id {ClientId}.",
+                            configuration.TokenEndpoint, configuration.ClientCredentials.ClientId);
 
             using FormUrlEncodedContent requestContent = GetClientCredentialsContent(configuration.ClientCredentials!, configuration.Scope);
 
             using HttpResponseMessage result = configuration.ClientCredentials!.UseBasicAuthorizationHeader
                 ? await PostWithBasicAuthenticationAsync(configuration, requestContent, cancellationToken).ConfigureAwait(false)
-                : await _client.PostAsync(configuration.AuthorizationEndpoint, requestContent, cancellationToken).ConfigureAwait(false);
+                : await _client.PostAsync(configuration.TokenEndpoint, requestContent, cancellationToken).ConfigureAwait(false);
 
             token = await ParseResponseAsync(configuration, result, cancellationToken).ConfigureAwait(false);
 
@@ -73,21 +73,21 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             if (configuration.DisableTokenCache)
             {
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+                logger.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId}, but the token cache is disabled.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId);
             }
             else if (token.ExpiresIn > 0)
             {
                 double cacheExpiresIn = (int)token.ExpiresIn * 0.95;
                 memoryCache.Set(cacheKey, token, TimeSpan.FromSeconds(cacheExpiresIn));
 
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
+                logger.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
             }
             else
             {
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+                logger.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId);
             }
 
             return token;
@@ -122,10 +122,10 @@ namespace KISS.HttpClientAuthentication.Helpers
             if (!result.IsSuccessStatusCode)
             {
                 if (result.StatusCode != HttpStatusCode.BadRequest ||
-                    !TryParseAndLogOAuth2Error(body, configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId))
+                    !TryParseAndLogOAuth2Error(body, configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId))
                 {
-                    logger.LogError("Could not authenticate against {AuthorizationEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
-                                    configuration.AuthorizationEndpoint, result.StatusCode, body);
+                    logger.LogError("Could not authenticate against {TokenEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
+                                    configuration.TokenEndpoint, result.StatusCode, body);
                 }
 
                 return null;
@@ -135,7 +135,7 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             if (token?.AccessToken is null)
             {
-                logger.LogError("The result from {AuthorizationEndpoint} is not a valid OAuth2 result.", configuration.AuthorizationEndpoint);
+                logger.LogError("The result from {TokenEndpoint} is not a valid OAuth2 result.", configuration.TokenEndpoint);
 
                 return null;
             }
@@ -160,7 +160,7 @@ namespace KISS.HttpClientAuthentication.Helpers
             {
                 Content = requestContent,
                 Method = HttpMethod.Post,
-                RequestUri = configuration.AuthorizationEndpoint,
+                RequestUri = configuration.TokenEndpoint,
                 Headers =
                 {
                     Authorization = new AuthenticationHeaderValue("Basic", encodedAuthorization)
@@ -170,7 +170,7 @@ namespace KISS.HttpClientAuthentication.Helpers
             return await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        private bool TryParseAndLogOAuth2Error(string errorContent, Uri authorizationEndpoint, string? clientId)
+        private bool TryParseAndLogOAuth2Error(string errorContent, Uri tokenEndpoint, string? clientId)
         {
             ErrorResponse? response = null;
 
@@ -189,7 +189,7 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             StringBuilder logMessage = new($"Could not authenticate against ");
 
-            logMessage.Append(authorizationEndpoint);
+            logMessage.Append(tokenEndpoint);
 
             if (!string.IsNullOrWhiteSpace(clientId))
             {

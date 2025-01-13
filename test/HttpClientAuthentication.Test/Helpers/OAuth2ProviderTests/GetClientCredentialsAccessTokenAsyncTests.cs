@@ -54,7 +54,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = clientId!,
@@ -83,7 +83,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -120,7 +120,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -138,7 +138,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
+            loggerMock.VerifyExt(l => l.LogInformation("Token for {TokenEndpoint} with client id {ClientId} found in cache, using this.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -165,7 +165,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -191,10 +191,10 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
+            loggerMock.VerifyExt(l => l.LogDebug("Could not find existing token in cache, requesting token from endpoint {TokenEndpoint} with client id {ClientId}.",
                                                  "https://somehost/", "client_id"), Times.Once);
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
+            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
                                                        "https://somehost/", "client_id", 3420), Times.Once);
         }
 
@@ -221,7 +221,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -238,7 +238,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
+            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -265,7 +265,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -283,7 +283,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
+            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {TokenEndpoint} with client id {ClientId}, but the token cache is disabled.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -308,7 +308,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -350,7 +350,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     UseBasicAuthorizationHeader = true,
@@ -385,7 +385,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -424,7 +424,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new("https://somehost/"),
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",

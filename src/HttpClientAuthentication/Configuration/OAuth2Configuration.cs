@@ -14,7 +14,11 @@ namespace KISS.HttpClientAuthentication.Configuration
         ///     Gets or sets the authorization endpoint used by some <see cref="AuthenticationProvider"/>
         ///     configuration.
         /// </summary>
-        public Uri AuthorizationEndpoint { get; set; } = default!;
+        /// <remarks>
+        ///     Obsolete: Use <see cref="TokenEndpoint"/> instead.
+        /// </remarks>
+        [Obsolete("Use TokenEndpoint instead.")]
+        public Uri AuthorizationEndpoint { get => TokenEndpoint; set => TokenEndpoint = value; }
 
         /// <summary>
         ///     Gets or sets the authorization scheme to use if <see cref="AuthenticationHeader"/> is 
@@ -47,5 +51,13 @@ namespace KISS.HttpClientAuthentication.Configuration
         ///     Scopes must be separated with a space.
         /// </remarks>
         public string? Scope { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the token endpoint.
+        /// </summary>
+        /// <remarks>
+        ///     Replaces <see cref="AuthorizationEndpoint"/>.
+        /// </remarks>
+        public Uri TokenEndpoint { get; set; } = default!;
     }
 }

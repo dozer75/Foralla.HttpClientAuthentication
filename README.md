@@ -76,10 +76,10 @@ Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Sc
 "<section name>": {
   "AuthenticationProvider": "OAuth2",
   "OAuth2": {
-    "AuthorizationEndpoint": "<OAuth2 token endpoint>",
     "DisableTokenCache": false,
     "GrantType": "ClientCredentials",
     "Scope": "<Optional scopes separated by space>",
+    "TokenEndpoint": "<OAuth2 token endpoint>",
     "ClientCredentials": {
         "ClientId": "<Unique client id>",
         "ClientSecret": "<Secret connected to the client id>"
@@ -88,6 +88,8 @@ Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Sc
 }
 ```
 
+> **NOTE**: The previous `AuthorizationEndpoint` is replaced by `TokenEndpoint`. It still exists,
+but is obsoleted and will be removed in a later version.
 
 ### Examples
 
