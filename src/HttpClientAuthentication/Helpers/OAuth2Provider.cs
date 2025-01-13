@@ -117,11 +117,7 @@ namespace KISS.HttpClientAuthentication.Helpers
         private async Task<AccessTokenResponse?> ParseResponseAsync(OAuth2Configuration configuration, HttpResponseMessage result,
                                                                     CancellationToken cancellationToken)
         {
-#if NET6_0_OR_GREATER
             string body = await result.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-#else
-            string body = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
-#endif
 
             if (!result.IsSuccessStatusCode)
             {

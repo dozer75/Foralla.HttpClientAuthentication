@@ -50,20 +50,8 @@ namespace KISS.HttpClientAuthentication
         /// </exception>
         public static IHttpClientBuilder AddAuthenticatedHttpMessageHandler(this IHttpClientBuilder builder, string configSection)
         {
-#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configSection);
-#else
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (configSection is null)
-            {
-                throw new ArgumentNullException(nameof(configSection));
-            }
-#endif
 
             builder.Services.AddMemoryCache();
 

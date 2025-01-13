@@ -11,11 +11,6 @@ The package currently supports the following authentication methods:
 - OAuth2
   - Client credentials
 
-> Please note: The .NET Standard 2.0 and .NET 6 targeted packages references the LTS version 6 of the dependent 
-NuGet packages. The reason for this is that while it is possible to run .NET 7 NuGet packages on .NET 6, it is known that some 
-of them may introduce unexpected behavior. It is recommended (especially from the ASP.NET Core team) limit usage of .NET 7 
-based NuGet packages on .NET 6 runtime.
-
 ## USAGE
 
 Add the NuGet package `KISS.HttpClientAuthentication` to your project and whenever a 
