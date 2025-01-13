@@ -1,4 +1,4 @@
-// Copyright © 2024 Rune Gulbrandsen.
+// Copyright © 2025 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Runtime.CompilerServices;
