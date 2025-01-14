@@ -1,11 +1,10 @@
-// Copyright © 2024 Rune Gulbrandsen.
+// Copyright © 2025 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using KISS.HttpClientAuthentication.Configuration;
 using KISS.HttpClientAuthentication.Constants;
 using KISS.HttpClientAuthentication.Helpers;
@@ -38,7 +37,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             Func<Task> act = () => provider.GetClientCredentialsAccessTokenAsync(new() { GrantType = OAuth2GrantType.ClientCredentials }, default!)
                                            .AsTask();
 
-            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("No valid ClientCredentials found.*");
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("ClientCredentials is null.*");
         }
 
         [Theory]
@@ -54,7 +53,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = clientId!,
@@ -83,7 +82,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -97,6 +96,43 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             await act.Should().ThrowAsync<ArgumentException>()
                               .WithParameterName("configuration")
                               .WithMessage("ClientCredentials.ClientSecret must be specified.*");
+        }
+
+        [Fact]
+        public async Task TestMissingTokenEndpointConfigurationSectionThrowsArgumentException()
+        {
+            OAuth2Provider provider = BuildServices().GetRequiredService<OAuth2Provider>();
+
+            Func<Task> act = () => provider.GetClientCredentialsAccessTokenAsync(new()
+            {
+                GrantType = OAuth2GrantType.ClientCredentials,
+                ClientCredentials = new()
+                {
+                    ClientId = "client_id",
+                    ClientSecret = "client_secret"
+                }
+            }, default!).AsTask();
+
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("TokenEndpoint is null.*");
+        }
+
+        [Fact]
+        public async Task TestMissingTokenEndpointUrlThrowsArgumentException()
+        {
+            OAuth2Provider provider = BuildServices().GetRequiredService<OAuth2Provider>();
+
+            Func<Task> act = () => provider.GetClientCredentialsAccessTokenAsync(new()
+            {
+                GrantType = OAuth2GrantType.ClientCredentials,
+                ClientCredentials = new()
+                {
+                    ClientId = "client_id",
+                    ClientSecret = "client_secret"
+                },
+                TokenEndpoint = new()
+            }, default!).AsTask();
+
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("configuration").WithMessage("TokenEndpoint.Url must be specified.*");
         }
 
         [Fact]
@@ -120,7 +156,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -138,7 +174,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
+            loggerMock.VerifyExt(l => l.LogDebug("Token for {TokenEndpoint} with client id {ClientId} found in cache, using this.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -165,7 +201,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -191,10 +227,10 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
+            loggerMock.VerifyExt(l => l.LogDebug("Could not find existing token in cache, requesting token from endpoint {TokenEndpoint} with client id {ClientId}.",
                                                  "https://somehost/", "client_id"), Times.Once);
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
+            loggerMock.VerifyExt(l => l.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
                                                        "https://somehost/", "client_id", 3420), Times.Once);
         }
 
@@ -221,7 +257,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -238,7 +274,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
+            loggerMock.VerifyExt(l => l.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -265,7 +301,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -283,7 +319,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
+            loggerMock.VerifyExt(l => l.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId}, but the token cache is disabled.",
                                                        "https://somehost/", "client_id"), Times.Once);
         }
 
@@ -294,21 +330,24 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
 
-            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-                          .Callback(async (HttpRequestMessage request, CancellationToken _) =>
-                          {
-                              request.Should().NotBeNull("Missing SendAsync request.");
-                              request.Headers.Authorization.Should().BeNull();
+            HttpRequestMessage? actualRequest = null;
 
-                              string content = await request.Content!.ReadAsStringAsync(default);
-                              content.Should().Be($"grant_type=client_credentials&client_id=client_id&client_secret=client_secret{Environment.NewLine}");
-                          })
-                          .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
+            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                          .Callback((HttpRequestMessage request, CancellationToken _) => actualRequest = request)
+                          .ReturnsAsync(() =>
+                          {
+                              actualRequest!.Headers.Authorization.Should().BeNull();
+
+                              string content = actualRequest.Content!.ReadAsStringAsync(default).GetAwaiter().GetResult();
+                              content.Should().Be($"grant_type=client_credentials&client_id=client_id&client_secret=client_secret");
+
+                              return new HttpResponseMessage(HttpStatusCode.NotFound);
+                          });
 
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -328,29 +367,26 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
 
-            HttpRequestMessage? actualRequest = null!;
+            HttpRequestMessage? actualRequest = null;
 
             httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-                          .Callback(async (HttpRequestMessage request, CancellationToken _) =>
+                          .Callback((HttpRequestMessage request, CancellationToken _) => actualRequest = request)
+                          .ReturnsAsync(() =>
                           {
-                              actualRequest.Should().NotBeNull("Missing SendAsync request.");
-                              actualRequest.Headers.Authorization.Should().NotBeNull();
+                              actualRequest!.Headers.Authorization.Should().NotBeNull();
 
-                              using (new AssertionScope())
-                              {
-                                  actualRequest.Headers.Authorization!.Scheme.Should().Be("Basic");
-                                  actualRequest.Headers.Authorization!.Parameter.Should().Be(Convert.ToBase64String(Encoding.ASCII.GetBytes($"client_id:client_secret")));
-                              }
+                              actualRequest.Headers.Authorization!.Scheme.Should().Be("Basic");
+                              actualRequest.Headers.Authorization!.Parameter.Should().Be(Convert.ToBase64String(Encoding.ASCII.GetBytes($"client_id:client_secret")));
 
-                              string content = await request.Content!.ReadAsStringAsync(default);
-                              content.Should().Be($"grant_type=client_credentials{Environment.NewLine}");
-                          })
-                          .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
+                              string content = actualRequest.Content!.ReadAsStringAsync(default).GetAwaiter().GetResult();
+                              content.Should().Be($"grant_type=client_credentials");
+                              return new HttpResponseMessage(HttpStatusCode.NotFound);
+                          });
 
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     UseBasicAuthorizationHeader = true,
@@ -371,21 +407,24 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
 
-            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-                          .Callback(async (HttpRequestMessage request, CancellationToken _) =>
-                          {
-                              request.Should().NotBeNull("Missing SendAsync request.");
-                              request.Headers.Authorization.Should().BeNull();
+            HttpRequestMessage? actualRequest = null;
 
-                              string content = await request.Content!.ReadAsStringAsync(default);
-                              content.Should().Be($"*scope=test_scope*");
-                          })
-                          .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
+            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                          .Callback((HttpRequestMessage request, CancellationToken _) => actualRequest = request)
+                          .ReturnsAsync(() =>
+                          {
+                              actualRequest!.Headers.Authorization.Should().BeNull();
+
+                              string content = actualRequest.Content!.ReadAsStringAsync(default).GetAwaiter().GetResult();
+                              content.Should().Contain($"scope=test_scope");
+
+                              return new HttpResponseMessage(HttpStatusCode.NotFound);
+                          });
 
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -410,27 +449,87 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
 
-            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-                          .Callback(async (HttpRequestMessage request, CancellationToken _) =>
-                          {
-                              request.Should().NotBeNull("Missing SendAsync request.");
-                              request.Headers.Authorization.Should().BeNull();
+            HttpRequestMessage? actualRequest = null;
 
-                              string content = await request.Content!.ReadAsStringAsync(default);
-                              content.Should().NotBe($"*scope=*");
-                          })
-                          .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
+            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                          .Callback((HttpRequestMessage request, CancellationToken _) => actualRequest = request)
+                          .ReturnsAsync(() =>
+                          {
+                              actualRequest!.Headers.Authorization.Should().BeNull();
+
+                              string content = actualRequest.Content!.ReadAsStringAsync(default).GetAwaiter().GetResult();
+                              content.Should().NotContain($"scope=");
+
+                              return new HttpResponseMessage(HttpStatusCode.NotFound);
+                          });
 
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
                     ClientSecret = "client_secret",
                 },
                 Scope = scope
+            };
+
+            OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();
+
+            await provider.GetClientCredentialsAccessTokenAsync(configuration, default);
+        }
+
+
+        [Fact]
+        public async Task TestRequestContainsAdditionalParametersSpecified()
+        {
+            IServiceProvider services = BuildServices();
+
+            Mock<HttpClient> httpClientMock = services.GetRequiredService<Mock<HttpClient>>();
+
+            HttpRequestMessage? actualRequest = null;
+
+            httpClientMock.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                          .Callback((HttpRequestMessage request, CancellationToken _) => actualRequest = request)
+                          .ReturnsAsync(() =>
+                          {
+                              actualRequest!.RequestUri!.Query.Should().Be("?query=query_value_with_%3F");
+
+                              actualRequest.Headers.Should().Contain(kvp =>
+                                kvp.Key == "header" && kvp.Value.All(v => "header_value".Equals(v)));
+
+                              string content = actualRequest.Content!.ReadAsStringAsync(default).GetAwaiter().GetResult();
+
+                              content.Should().Contain("body=body_value");
+
+                              return new HttpResponseMessage(HttpStatusCode.NotFound);
+                          });
+
+            OAuth2Configuration configuration = new()
+            {
+                GrantType = OAuth2GrantType.ClientCredentials,
+                TokenEndpoint = new()
+                {
+                    Url = new("https://somehost/"),
+                    AdditionalBodyParameters =
+                    {
+                        { "body", "body_value" }
+                    },
+                    AdditionalHeaderParameters =
+                    {
+                        { "header", "header_value" }
+                    },
+                    AdditionalQueryParameters =
+                    {
+                        { "query", "query_value_with_?" }
+                    }
+                },
+                ClientCredentials = new()
+                {
+                    ClientId = "client_id",
+                    ClientSecret = "client_secret"
+                }
             };
 
             OAuth2Provider provider = services.GetRequiredService<OAuth2Provider>();

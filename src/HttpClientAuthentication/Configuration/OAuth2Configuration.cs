@@ -1,4 +1,4 @@
-// Copyright © 2024 Rune Gulbrandsen.
+// Copyright © 2025 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using KISS.HttpClientAuthentication.Constants;
@@ -10,12 +10,6 @@ namespace KISS.HttpClientAuthentication.Configuration
     /// </summary>
     public sealed class OAuth2Configuration
     {
-        /// <summary>
-        ///     Gets or sets the authorization endpoint used by some <see cref="AuthenticationProvider"/>
-        ///     configuration.
-        /// </summary>
-        public Uri AuthorizationEndpoint { get; set; } = default!;
-
         /// <summary>
         ///     Gets or sets the authorization scheme to use if <see cref="AuthenticationHeader"/> is 
         ///     Authorization or the selected <see cref="AuthenticationProvider"/> uses Authorization as default header.
@@ -47,5 +41,13 @@ namespace KISS.HttpClientAuthentication.Configuration
         ///     Scopes must be separated with a space.
         /// </remarks>
         public string? Scope { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the token endpoint.
+        /// </summary>
+        /// <remarks>
+        ///     Replaces <see cref="AuthorizationEndpoint"/>.
+        /// </remarks>
+        public OAuth2Endpoint TokenEndpoint { get; set; } = default!;
     }
 }

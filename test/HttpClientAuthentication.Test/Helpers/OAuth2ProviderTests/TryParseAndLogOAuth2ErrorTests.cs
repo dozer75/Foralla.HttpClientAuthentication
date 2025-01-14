@@ -1,4 +1,4 @@
-// Copyright © 2024 Rune Gulbrandsen.
+// Copyright © 2025 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
 using System.Net;
@@ -37,7 +37,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -76,7 +76,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -115,7 +115,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -154,7 +154,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -191,7 +191,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                AuthorizationEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -207,7 +207,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
 
             Mock<ILogger<OAuth2Provider>> loggerMock = services.GetRequiredService<Mock<ILogger<OAuth2Provider>>>();
 
-            loggerMock.VerifyExt(l => l.LogError("Could not authenticate against {AuthorizationEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
+            loggerMock.VerifyExt(l => l.LogError("Could not authenticate against {TokenEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
                                                  "https://somehost/", HttpStatusCode.BadRequest, content), Times.Once);
         }
     }

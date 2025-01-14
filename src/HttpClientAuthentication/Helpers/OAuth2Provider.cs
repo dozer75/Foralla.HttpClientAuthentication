@@ -1,8 +1,8 @@
-// Copyright © 2024 Rune Gulbrandsen.
+// Copyright © 2025 Rune Gulbrandsen.
 // All rights reserved. Licensed under the MIT License; see LICENSE.txt.
 
+using System.Globalization;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using KISS.HttpClientAuthentication.Configuration;
@@ -23,48 +23,30 @@ namespace KISS.HttpClientAuthentication.Helpers
         /// <inheritdoc />
         public async ValueTask<AccessTokenResponse?> GetClientCredentialsAccessTokenAsync(OAuth2Configuration configuration, CancellationToken cancellationToken = default)
         {
-            if (configuration.GrantType is not OAuth2GrantType.ClientCredentials)
+            ValidateClientCredentialParameters(configuration);
+
+            string cacheKey = $"{configuration.GrantType}#{configuration.TokenEndpoint}#{configuration.ClientCredentials!.ClientId}";
+
+            AccessTokenResponse? token;
+
+            if (!configuration.DisableTokenCache)
             {
-                throw new ArgumentException($"{nameof(configuration.GrantType)} must be {OAuth2GrantType.ClientCredentials}.", nameof(configuration));
+                if (memoryCache.TryGetValue(cacheKey, out token))
+                {
+                    logger.LogDebug("Token for {TokenEndpoint} with client id {ClientId} found in cache, using this.",
+                                          configuration.TokenEndpoint, configuration.ClientCredentials.ClientId);
+                    return token;
+                }
+
+                logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {TokenEndpoint} with client id {ClientId}.",
+                            configuration.TokenEndpoint, configuration.ClientCredentials.ClientId);
             }
 
-            if (configuration.ClientCredentials is null)
-            {
-                throw new ArgumentException($"No valid {nameof(configuration.ClientCredentials)} found.", nameof(configuration));
-            }
+            using HttpRequestMessage request = GetTokenRequest(configuration);
 
-            if (string.IsNullOrWhiteSpace(configuration.ClientCredentials.ClientId))
-            {
-                throw new ArgumentException($"{nameof(configuration.ClientCredentials)}.{nameof(configuration.ClientCredentials.ClientId)} must be specified.",
-                                            nameof(configuration));
-            }
+            using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(configuration.ClientCredentials.ClientSecret))
-            {
-                throw new ArgumentException($"{nameof(configuration.ClientCredentials)}.{nameof(configuration.ClientCredentials.ClientSecret)} must be specified.",
-                                            nameof(configuration));
-            }
-
-
-            string cacheKey = $"{configuration.GrantType}#{configuration.AuthorizationEndpoint}#{configuration.ClientCredentials!.ClientId}";
-
-            if (memoryCache.TryGetValue(cacheKey, out AccessTokenResponse? token))
-            {
-                logger.LogInformation("Token for {AuthorizationEndpoint} with client id {ClientId} found in cache, using this.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
-                return token;
-            }
-
-            logger.LogDebug("Could not find existing token in cache, requesting token from endpoint {AuthorizationEndpoint} with client id {ClientId}.",
-                            configuration.AuthorizationEndpoint, configuration.ClientCredentials.ClientId);
-
-            using FormUrlEncodedContent requestContent = GetClientCredentialsContent(configuration.ClientCredentials!, configuration.Scope);
-
-            using HttpResponseMessage result = configuration.ClientCredentials!.UseBasicAuthorizationHeader
-                ? await PostWithBasicAuthenticationAsync(configuration, requestContent, cancellationToken).ConfigureAwait(false)
-                : await _client.PostAsync(configuration.AuthorizationEndpoint, requestContent, cancellationToken).ConfigureAwait(false);
-
-            token = await ParseResponseAsync(configuration, result, cancellationToken).ConfigureAwait(false);
+            token = await ParseResponseAsync(configuration, response, cancellationToken).ConfigureAwait(false);
 
             if (token is null)
             {
@@ -73,63 +55,115 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             if (configuration.DisableTokenCache)
             {
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but the token cache is disabled.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+                logger.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId}, but the token cache is disabled.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId);
             }
             else if (token.ExpiresIn > 0)
             {
                 double cacheExpiresIn = (int)token.ExpiresIn * 0.95;
                 memoryCache.Set(cacheKey, token, TimeSpan.FromSeconds(cacheExpiresIn));
 
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
+                logger.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId} and cached for {CacheExpiresIn} seconds.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId, cacheExpiresIn);
             }
             else
             {
-                logger.LogInformation("Token retrieved from {AuthorizationEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
-                                      configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId);
+                logger.LogDebug("Token retrieved from {TokenEndpoint} with client id {ClientId}, but not cached since it is missing expires_in information.",
+                                      configuration.TokenEndpoint, configuration.ClientCredentials!.ClientId);
             }
 
             return token;
         }
 
-        private static FormUrlEncodedContent GetClientCredentialsContent(ClientCredentialsConfiguration configuration, string? scope)
+        private static void AddTokenRequestHeaders(HttpRequestMessage request, OAuth2Configuration configuration)
+        {
+            if (configuration.ClientCredentials!.UseBasicAuthorizationHeader)
+            {
+                string encodedAuthorization = Convert.ToBase64String(
+                    Encoding.ASCII.GetBytes($"{configuration.ClientCredentials!.ClientId}:{configuration.ClientCredentials.ClientSecret}"));
+
+                request.Headers.Authorization = new("Basic", encodedAuthorization);
+            }
+
+            foreach (KeyValuePair<string, string> parameter in configuration.TokenEndpoint.AdditionalHeaderParameters)
+            {
+                request.Headers.Add(parameter.Key, parameter.Value);
+            }
+        }
+
+        private static FormUrlEncodedContent GetClientCredentialsContent(OAuth2Configuration configuration)
         {
             Dictionary<string, string> requestBody = new()
             {
                 { OAuth2Keyword.GrantType, OAuth2Keyword.ClientCredentials }
             };
 
-            if (!configuration.UseBasicAuthorizationHeader)
+            if (!configuration.ClientCredentials!.UseBasicAuthorizationHeader)
             {
-                requestBody.Add(OAuth2Keyword.ClientId, configuration.ClientId);
-                requestBody.Add(OAuth2Keyword.ClientSecret, configuration.ClientSecret);
+                requestBody.Add(OAuth2Keyword.ClientId, configuration.ClientCredentials.ClientId);
+                requestBody.Add(OAuth2Keyword.ClientSecret, configuration.ClientCredentials.ClientSecret);
             }
 
-            if (!string.IsNullOrWhiteSpace(scope))
+            if (!string.IsNullOrWhiteSpace(configuration.Scope))
             {
-                requestBody.Add(OAuth2Keyword.Scope, scope!.Trim());
+                requestBody.Add(OAuth2Keyword.Scope, configuration.Scope.Trim());
             }
 
-            return new FormUrlEncodedContent(requestBody!);
+            foreach (KeyValuePair<string, string> parameter in configuration.TokenEndpoint.AdditionalBodyParameters)
+            {
+                requestBody.Add(parameter.Key, parameter.Value);
+            }
+
+            return new FormUrlEncodedContent(requestBody);
         }
 
-        private async Task<AccessTokenResponse?> ParseResponseAsync(OAuth2Configuration configuration, HttpResponseMessage result,
+        private static Uri GetCompleteTokenUrl(OAuth2Endpoint tokenEndpoint)
+        {
+            if (tokenEndpoint.AdditionalQueryParameters.Count == 0)
+            {
+                return tokenEndpoint.Url;
+            }
+
+            UriBuilder uriBuilder = new(tokenEndpoint.Url);
+
+            StringBuilder stringBuilder = new();
+
+            foreach (KeyValuePair<string, string> parameter in tokenEndpoint.AdditionalQueryParameters)
+            {
+                stringBuilder.Append(CultureInfo.InvariantCulture, $"{parameter.Key}={WebUtility.UrlEncode(parameter.Value)}");
+            }
+
+            stringBuilder.Replace("&", "?", 0, 1);
+
+            uriBuilder.Query = stringBuilder.ToString();
+
+            return uriBuilder.Uri;
+        }
+
+        private static HttpRequestMessage GetTokenRequest(OAuth2Configuration configuration)
+        {
+            HttpRequestMessage request = new(HttpMethod.Get, GetCompleteTokenUrl(configuration.TokenEndpoint))
+            {
+                Method = HttpMethod.Post,
+                Content = GetClientCredentialsContent(configuration)
+            };
+
+            AddTokenRequestHeaders(request, configuration);
+            return request;
+        }
+
+        private async Task<AccessTokenResponse?> ParseResponseAsync(OAuth2Configuration configuration, HttpResponseMessage response,
                                                                     CancellationToken cancellationToken)
         {
-#if NET6_0_OR_GREATER
-            string body = await result.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-#else
-            string body = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
-#endif
+            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!result.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                if (result.StatusCode != HttpStatusCode.BadRequest ||
-                    !TryParseAndLogOAuth2Error(body, configuration.AuthorizationEndpoint, configuration.ClientCredentials!.ClientId))
+                if (response.StatusCode != HttpStatusCode.BadRequest ||
+                    !TryParseAndLogOAuth2Error(body, configuration.TokenEndpoint.Url, configuration.ClientCredentials!.ClientId))
                 {
-                    logger.LogError("Could not authenticate against {AuthorizationEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
-                                    configuration.AuthorizationEndpoint, result.StatusCode, body);
+                    logger.LogError("Could not authenticate against {TokenEndpoint}, the returned status code was {StatusCode}. Response body: {Body}.",
+                                    configuration.TokenEndpoint, response.StatusCode, body);
                 }
 
                 return null;
@@ -139,7 +173,7 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             if (token?.AccessToken is null)
             {
-                logger.LogError("The result from {AuthorizationEndpoint} is not a valid OAuth2 result.", configuration.AuthorizationEndpoint);
+                logger.LogError("The result from {TokenEndpoint} is not a valid OAuth2 result.", configuration.TokenEndpoint);
 
                 return null;
             }
@@ -154,27 +188,7 @@ namespace KISS.HttpClientAuthentication.Helpers
             return token;
         }
 
-        private async Task<HttpResponseMessage> PostWithBasicAuthenticationAsync(OAuth2Configuration configuration, FormUrlEncodedContent requestContent,
-                                                                           CancellationToken cancellationToken)
-        {
-            string encodedAuthorization = Convert.ToBase64String(
-                Encoding.ASCII.GetBytes($"{configuration.ClientCredentials!.ClientId}:{configuration.ClientCredentials.ClientSecret}"));
-
-            using HttpRequestMessage request = new()
-            {
-                Content = requestContent,
-                Method = HttpMethod.Post,
-                RequestUri = configuration.AuthorizationEndpoint,
-                Headers =
-                {
-                    Authorization = new AuthenticationHeaderValue("Basic", encodedAuthorization)
-                }
-            };
-
-            return await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
-        private bool TryParseAndLogOAuth2Error(string errorContent, Uri authorizationEndpoint, string? clientId)
+        private bool TryParseAndLogOAuth2Error(string errorContent, Uri tokenEndpoint, string? clientId)
         {
             ErrorResponse? response = null;
 
@@ -193,7 +207,7 @@ namespace KISS.HttpClientAuthentication.Helpers
 
             StringBuilder logMessage = new($"Could not authenticate against ");
 
-            logMessage.Append(authorizationEndpoint);
+            logMessage.Append(tokenEndpoint);
 
             if (!string.IsNullOrWhiteSpace(clientId))
             {
@@ -223,6 +237,41 @@ namespace KISS.HttpClientAuthentication.Helpers
 #pragma warning restore CA2254 // Template should be a static expression
 
             return true;
+        }
+
+        private static void ValidateClientCredentialParameters(OAuth2Configuration configuration)
+        {
+            if (configuration.GrantType is not OAuth2GrantType.ClientCredentials)
+            {
+                throw new ArgumentException($"{nameof(configuration.GrantType)} must be {OAuth2GrantType.ClientCredentials}.", nameof(configuration));
+            }
+
+            if (configuration.ClientCredentials is null)
+            {
+                throw new ArgumentException($"{nameof(configuration.ClientCredentials)} is null.", nameof(configuration));
+            }
+
+            if (string.IsNullOrWhiteSpace(configuration.ClientCredentials.ClientId))
+            {
+                throw new ArgumentException($"{nameof(configuration.ClientCredentials)}.{nameof(configuration.ClientCredentials.ClientId)} must be specified.",
+                                            nameof(configuration));
+            }
+
+            if (string.IsNullOrWhiteSpace(configuration.ClientCredentials.ClientSecret))
+            {
+                throw new ArgumentException($"{nameof(configuration.ClientCredentials)}.{nameof(configuration.ClientCredentials.ClientSecret)} must be specified.",
+                                            nameof(configuration));
+            }
+
+            if (configuration.TokenEndpoint is null)
+            {
+                throw new ArgumentException($"{nameof(configuration.TokenEndpoint)} is null.", nameof(configuration));
+            }
+
+            if (configuration.TokenEndpoint.Url is null)
+            {
+                throw new ArgumentException($"{nameof(configuration.TokenEndpoint)}.{nameof(configuration.TokenEndpoint.Url)} must be specified.", nameof(configuration));
+            }
         }
     }
 }
