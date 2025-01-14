@@ -344,5 +344,8 @@ healthchecksdb
 /test/coverage.opencover.xml
 /test/result.json
 
+# POC related
+/poc
+
 # Custom exclusions
 *.AssemblyAttributes

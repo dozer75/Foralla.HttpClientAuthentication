@@ -70,7 +70,8 @@ Authentication using OAuth2.
 
 ##### Client credentials
 
-Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Scope` is required.
+Using OAuth2 client credentials, all settings except `DisableTokenCache`, `Scope` and
+`TokenEndpoint`'s `Additional*Parameters` is required.
 
 ```
 "<section name>": {
@@ -79,7 +80,15 @@ Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Sc
     "DisableTokenCache": false,
     "GrantType": "ClientCredentials",
     "Scope": "<Optional scopes separated by space>",
-    "TokenEndpoint": "<OAuth2 token endpoint>",
+    "TokenEndpoint": {
+        "Url": "<OAuth2 token endpoint>",
+        "AdditionalHeaderParameters": {
+        },
+        "AdditionalBodyParameters": {
+        },
+        "AdditionalQueryParameters": {
+        }
+    },
     "ClientCredentials": {
         "ClientId": "<Unique client id>",
         "ClientSecret": "<Secret connected to the client id>"
@@ -88,8 +97,9 @@ Using OAuth2 client credentials, all settings except `DisableTokenCache` and `Sc
 }
 ```
 
-> **NOTE**: The previous `AuthorizationEndpoint` is replaced by `TokenEndpoint`. It still exists,
-but is obsoleted and will be removed in a later version.
+The `Additional*Parameters` configuration is dynamic, any configuration in these will 
+be added to their respective parts of the request accordingly. Please note that the 
+`AdditionalQueryParameters` will be url encoded.
 
 ### Examples
 

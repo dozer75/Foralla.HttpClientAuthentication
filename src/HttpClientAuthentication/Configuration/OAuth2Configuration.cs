@@ -11,16 +11,6 @@ namespace KISS.HttpClientAuthentication.Configuration
     public sealed class OAuth2Configuration
     {
         /// <summary>
-        ///     Gets or sets the authorization endpoint used by some <see cref="AuthenticationProvider"/>
-        ///     configuration.
-        /// </summary>
-        /// <remarks>
-        ///     Obsolete: Use <see cref="TokenEndpoint"/> instead.
-        /// </remarks>
-        [Obsolete("Use TokenEndpoint instead.")]
-        public Uri AuthorizationEndpoint { get => TokenEndpoint; set => TokenEndpoint = value; }
-
-        /// <summary>
         ///     Gets or sets the authorization scheme to use if <see cref="AuthenticationHeader"/> is 
         ///     Authorization or the selected <see cref="AuthenticationProvider"/> uses Authorization as default header.
         ///     
@@ -58,6 +48,6 @@ namespace KISS.HttpClientAuthentication.Configuration
         /// <remarks>
         ///     Replaces <see cref="AuthorizationEndpoint"/>.
         /// </remarks>
-        public Uri TokenEndpoint { get; set; } = default!;
+        public OAuth2Endpoint TokenEndpoint { get; set; } = default!;
     }
 }

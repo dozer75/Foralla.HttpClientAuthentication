@@ -37,7 +37,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                TokenEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -76,7 +76,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                TokenEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -115,7 +115,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                TokenEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -154,7 +154,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                TokenEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
@@ -191,7 +191,7 @@ namespace KISS.HttpClientAuthentication.Test.Helpers.OAuth2ProviderTests
             OAuth2Configuration configuration = new()
             {
                 GrantType = OAuth2GrantType.ClientCredentials,
-                TokenEndpoint = new("https://somehost/"),
+                TokenEndpoint = new() { Url = new("https://somehost/") },
                 ClientCredentials = new()
                 {
                     ClientId = "client_id",
